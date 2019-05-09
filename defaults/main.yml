@@ -1,0 +1,6 @@
+---
+
+docker_data_dir: /data/docker
+docker_storage_driver: devicemapper
+
+docker_version: "18.06.*"
