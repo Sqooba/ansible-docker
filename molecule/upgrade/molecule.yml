@@ -1,0 +1,66 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+  options:
+    config-file: ../../.yamllint
+platforms:
+  - name: instance
+    image: docker.sqooba.io/sqooba/systemd:1.0.2
+    pull: True
+    pre_build_image: True
+    registry:
+      url: docker.sqooba.io
+      # We should be able to set specific credentials
+      # but the feature does not seem to work
+      #
+      # credentials:
+      #   username: iac_user
+      #   password: "${password}"       # password cannot be passed in clear text
+      #   email: devops@sqooba.io
+    privileged: True
+    nocache: False
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    tmpfs:
+      - /tmp
+      - /run
+    command: "/usr/sbin/init"
+    environment: {container: docker}
+provisioner:
+  name: ansible
+  log: True
+  options:
+    "vault-password-file": "~/.ansible-secrets/molecule-vault.txt"
+  lint:
+    name: ansible-lint
+    options:
+      x:
+        # [ANSIBLE0006] yum used in place of yum module
+        - ANSIBLE0006
+        # [305] Use shell only when shell functionality is required
+        - 305
+        # [306] Shells that use pipes should set the pipefail option
+        - 306
+        # Role info should contain platforms (galaxy_info)
+        - 701
+scenario:
+  name: upgrade
+  test_sequence:
+    - destroy
+    - create
+    - converge
+    - verify
+    - destroy
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+ansible:
+  raw_env_vars:
+    ANSIBLE_CALLBACK_PLUGINS:
+      ~/venv/lib/python2.7/site-packages/ara/plugins/callbacks

@@ -1,0 +1,15 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: docker
+      vars:
+        docker_start_daemon: False
+
+- name: Upgrade Docker
+  hosts: all
+  roles:
+    - role: docker
+      vars:
+        docker_start_daemon: False
+        docker_version: "18.09.*"

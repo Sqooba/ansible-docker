@@ -1,49 +1,77 @@
 ---
 
-  - name: Install docker dependencies
-    yum:
-      name: ['yum-utils', 'device-mapper-persistent-data', 'lvm2']
-      state: present
+- name: Install docker dependencies
+  yum:
+    name:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+      - yum-versionlock
+    state: present
 
-  - name: Install docker-ce
-    yum:
-      name: "docker-ce-{{ docker_version }}"
-      state: present
-      allow_downgrade: yes
-    notify: "restart docker"
+- name: set version lock in a file to detect consistently a change in version
+  copy:
+    dest: "/root/.yum-{{ docker_package_name }}-version.lock"
+    content: "{{ docker_package_name }}-{{ docker_version }}"
+  register: docker_version_lock
 
-  - name: Install docker python (as required by docker_login)
-    pip:
-      name: docker
-      state: present
+- name: "Ensure the version {{ docker_version }} is locked. Drop /root/.yum-{{ docker_package_name }}-version.lock to force this step"
+  shell: "yum versionlock clear {{ docker_package_name }} && yum versionlock {{ docker_package_name }}-{{ docker_version }}"
+  register: command_result
+  when: docker_version_lock is changed
+  changed_when: "'versionlock added: 0' not in command_result.stdout"
+  args:
+    warn: false
+- debug: var=command_result
 
-  - name: Configure docker data dir and storage driver
-    lineinfile:
-      dest: /usr/lib/systemd/system/docker.service
-      regexp: "^ExecStart=/usr/bin/dockerd"
-      line: "ExecStart=/usr/bin/dockerd -g {{ docker_data_dir }} --storage-driver {{ docker_storage_driver }}"
-    notify: "restart docker"
+- name: "Debugging"
+  shell: "yum versionlock status"
+  args:
+    warn: false
+  changed_when: False
+  register: command_result
+- debug: var=command_result
 
-  - name: "Ensure {{ docker_data_dir }} exists"
-    file:
-      name: "{{ docker_data_dir }}"
-      state: directory
-    notify: "restart docker"
+- name: "Install {{ docker_package_name }}"
+  yum:
+    name: "{{ docker_package_name }}-{{ docker_version }}"
+    state: present
+    allow_downgrade: yes
+  notify: "restart docker"
+
+- name: Install docker python (as required by docker_login)
+  pip:
+    name: docker
+    state: present
+
+- name: Configure docker data dir and storage driver
+  lineinfile:
+    dest: /usr/lib/systemd/system/docker.service
+    regexp: "^ExecStart=/usr/bin/dockerd"
+    line: "ExecStart=/usr/bin/dockerd -g {{ docker_data_dir }} --storage-driver {{ docker_storage_driver }}"
+  notify: "restart docker"
+
+- name: "Ensure {{ docker_data_dir }} exists"
+  file:
+    name: "{{ docker_data_dir }}"
+    state: directory
+  notify: "restart docker"
 
 # TODO: ansible doesn't force deletion of folder when creating a symlink, only a file.
 # Folder has to be removed manually.
-  - name: "Ensure {{ docker_data_dir }} exists"
-    file:
-      src: "{{ docker_data_dir }}"
-      dest: "/var/lib/docker"
-      state: link
-      force: yes
-    when: docker_data_dir != "/var/lib/docker"
-    notify: "restart docker"
+- name: "Ensure {{ docker_data_dir }} exists"
+  file:
+    src: "{{ docker_data_dir }}"
+    dest: "/var/lib/docker"
+    state: link
+    force: yes
+  when: docker_data_dir != "/var/lib/docker"
+  notify: "restart docker"
 
-  - name: Ensure docker starts at next reboot
-    service:
-      name: docker
-      enabled: true
+- name: Ensure docker starts at next reboot
+  service:
+    name: docker
+    enabled: true
+  when: docker_start_daemon
 
-  - meta: flush_handlers
+- meta: flush_handlers

@@ -4,8 +4,10 @@
   service:
     name: docker
     state: reloaded
+  when: docker_start_daemon
 
 - name: restart docker
   service:
     name: docker
     state: restarted
+  when: docker_start_daemon

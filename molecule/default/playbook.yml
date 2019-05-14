@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: docker
+      vars:
+        docker_start_daemon: False
