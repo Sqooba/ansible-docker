@@ -48,6 +48,7 @@ provisioner:
         - 306
         # Role info should contain platforms (galaxy_info)
         - 701
+      c: "../../.ansible-lint"
 scenario:
   name: default
 verifier:
