@@ -21,11 +21,11 @@ platforms:
       #   username: iac_user
       #   password: "${password}"       # password cannot be passed in clear text
       #   email: devops@sqooba.io
-    privileged: True
+    privileged: no
     nocache: False
     volumes:
       - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     tmpfs:
       - /tmp
       - /run
@@ -36,6 +36,8 @@ provisioner:
   log: True
   options:
     "vault-password-file": "~/.ansible-secrets/molecule-vault.txt"
+  env:
+    ANSIBLE_FILTER_PLUGINS: "/octopus/iac/ansible/plugins/filter"
   lint:
     name: ansible-lint
     options:

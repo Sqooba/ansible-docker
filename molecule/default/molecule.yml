@@ -36,6 +36,8 @@ provisioner:
   log: True
   options:
     "vault-password-file": "~/.ansible-secrets/molecule-vault.txt"
+  env:
+    ANSIBLE_FILTER_PLUGINS: "/octopus/iac/ansible/plugins/filter"
   lint:
     name: ansible-lint
     options:
