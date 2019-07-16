@@ -1,5 +1,11 @@
 ---
 
+- name: Create docker group
+  group:
+    name: docker
+    gid: "{{ docker_group_gid }}"
+    system: yes
+
 - name: Install docker dependencies
   yum:
     name:
@@ -48,7 +54,7 @@
   lineinfile:
     dest: /usr/lib/systemd/system/docker.service
     regexp: "^ExecStart=/usr/bin/dockerd"
-    line: "ExecStart=/usr/bin/dockerd -g {{ docker_data_dir }} --storage-driver {{ docker_storage_driver }}"
+    line: "ExecStart=/usr/bin/dockerd --data-root {{ docker_data_dir }} --storage-driver {{ docker_storage_driver }}"
   notify: "restart docker"
 
 - name: "Ensure {{ docker_data_dir }} exists"
@@ -72,6 +78,6 @@
   service:
     name: docker
     enabled: true
-  when: docker_start_daemon
+  when: docker_enable_daemon
 
 - meta: flush_handlers

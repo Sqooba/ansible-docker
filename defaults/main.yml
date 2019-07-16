@@ -1,7 +1,13 @@
 ---
 
-# This flag is controlling whether the start docker service or not after installing the binaries
+# docker group gid
+docker_group_gid: 992
+
+# Whether to start docker service or not after installing the binaries
 docker_start_daemon: True
+
+# Whether to enable the docker daemon to start at next reboot
+docker_enable_daemon: True
 
 docker_data_dir: /data/docker
 docker_storage_driver: devicemapper

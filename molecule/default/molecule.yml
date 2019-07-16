@@ -21,11 +21,11 @@ platforms:
       #   username: iac_user
       #   password: "${password}"       # password cannot be passed in clear text
       #   email: devops@sqooba.io
-    privileged: True
+    privileged: False
     nocache: False
     volumes:
       - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     tmpfs:
       - /tmp
       - /run
