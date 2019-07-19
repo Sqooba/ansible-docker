@@ -13,6 +13,6 @@ docker_data_dir: /data/docker
 docker_storage_driver: devicemapper
 
 # Docker 18.09 is causing issues with K8s, lets's stick to 18.06 until this is resolved.
-docker_version: "18.06.*"
+docker_version: "18.09.*"
 
 docker_package_name: "docker-ce"
