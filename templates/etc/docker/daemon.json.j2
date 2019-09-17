@@ -1,0 +1,16 @@
+{
+    "default-address-pools": [
+        {
+            "base": "{{ docker_default_address_pools.base }}",
+            "size": {{ docker_default_address_pools.size }}
+        }
+    ]
+{% if docker_unsecure_registries | length > 0 %}
+    ,
+    "insecure-registries": [
+    {% for r in docker_unsecure_registries %}
+        "{{ r }}"{% if loop.index != docker_unsecure_registries | length %},{% endif %}
+    {% endfor %}
+    ]
+{% endif %}
+}

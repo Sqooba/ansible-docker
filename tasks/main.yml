@@ -20,7 +20,7 @@
       - yum-versionlock
     state: present
 
-- name: set version lock in a file to detect consistently a change in version
+- name: Set version lock in a file to detect consistently a change in version
   copy:
     dest: "/root/.yum-{{ docker_package_name }}-version.lock"
     content: "{{ docker_package_name }}-{{ docker_version }}"
@@ -33,7 +33,7 @@
   changed_when: "'versionlock added: 0' not in command_result.stdout"
   args:
     warn: false
-- debug: var=command_result
+- debug: var=command_result verbosity=3
 
 - name: "Debugging"
   shell: "yum versionlock status"
@@ -41,7 +41,7 @@
     warn: false
   changed_when: False
   register: command_result
-- debug: var=command_result
+- debug: var=command_result verbosity=3
 
 - name: "Install {{ docker_package_name }}"
   yum:
@@ -66,10 +66,9 @@
   file:
     name: "{{ docker_data_dir }}"
     state: directory
+    recurse: yes
   notify: "restart docker"
 
-# TODO: ansible doesn't force deletion of folder when creating a symlink, only a file.
-# Folder has to be removed manually.
 - name: "Ensure {{ docker_data_dir }} exists"
   file:
     src: "{{ docker_data_dir }}"
@@ -77,6 +76,17 @@
     state: link
     force: yes
   when: docker_data_dir != "/var/lib/docker"
+  notify: "restart docker"
+
+- name: Ensure /etc/docker exists
+  file:
+    name: /etc/docker
+    state: directory
+
+- name: Configure /etc/docker/daemon.json
+  template:
+    src: etc/docker/daemon.json.j2
+    dest: /etc/docker/daemon.json
   notify: "restart docker"
 
 - name: Ensure docker starts at next reboot

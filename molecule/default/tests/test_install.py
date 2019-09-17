@@ -8,7 +8,7 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 
 
 @pytest.mark.parametrize("name, version", [
-    ("docker-ce", "18.06"),
+    ("docker-ce", "19.03"),
 ])
 def test_yum_pkg_are_installed(host, name, version):
     pkg = host.package(name)
